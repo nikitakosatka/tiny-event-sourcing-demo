@@ -1,16 +1,13 @@
 package ru.quipy.logic
 
-import ru.quipy.api.ProjectCreatedEvent
-import ru.quipy.api.TagAssignedToTaskEvent
-import ru.quipy.api.TagCreatedEvent
-import ru.quipy.api.TaskCreatedEvent
+import org.apache.logging.log4j.util.Strings
+import ru.quipy.api.*
 import java.util.*
 
-
-// Commands : takes something -> returns event
-// Here the commands are represented by extension functions, but also can be the class member functions
-
-fun ProjectAggregateState.create(id: UUID, title: String, creatorId: String): ProjectCreatedEvent {
+fun ProjectAggregateState.create(id: UUID, title: String, creatorId: UUID): ProjectCreatedEvent {
+    if (title.isBlank()) {
+        throw IllegalArgumentException("Blank name: $title")
+    }
     return ProjectCreatedEvent(
         projectId = id,
         title = title,
@@ -18,25 +15,97 @@ fun ProjectAggregateState.create(id: UUID, title: String, creatorId: String): Pr
     )
 }
 
-fun ProjectAggregateState.addTask(name: String): TaskCreatedEvent {
-    return TaskCreatedEvent(projectId = this.getId(), taskId = UUID.randomUUID(), taskName = name)
+fun ProjectAggregateState.delete(): ProjectDeletedEvent {
+    return ProjectDeletedEvent(projectId = this.getId())
 }
 
-fun ProjectAggregateState.createTag(name: String): TagCreatedEvent {
-    if (projectTags.values.any { it.name == name }) {
-        throw IllegalArgumentException("Tag already exists: $name")
+fun ProjectAggregateState.addUser(userId: UUID): ProjectUpdatedEvent {
+    if (participants.contains(userId)) {
+        throw IllegalArgumentException("User already added: $userId")
     }
-    return TagCreatedEvent(projectId = this.getId(), tagId = UUID.randomUUID(), tagName = name)
+    return ProjectUpdatedEvent(
+        projectId = this.getId(),
+        update = ProjectUpdateEntity(
+            eventType = ProjectUpdateEventType.ADD_USER,
+            userId = userId,
+            status = null,
+        )
+    )
 }
 
-fun ProjectAggregateState.assignTagToTask(tagId: UUID, taskId: UUID): TagAssignedToTaskEvent {
-    if (!projectTags.containsKey(tagId)) {
-        throw IllegalArgumentException("Tag doesn't exists: $tagId")
+fun ProjectAggregateState.removeUser(userId: UUID): ProjectUpdatedEvent {
+    if (!participants.contains(userId)) {
+        throw IllegalArgumentException("User's not project participant: $userId")
     }
+    return ProjectUpdatedEvent(
+        projectId = this.getId(),
+        update = ProjectUpdateEntity(
+            eventType = ProjectUpdateEventType.REMOVE_USER,
+            userId = userId,
+            status = null,
+        )
+    )
+}
 
-    if (!tasks.containsKey(taskId)) {
-        throw IllegalArgumentException("Task doesn't exists: $taskId")
+fun ProjectAggregateState.createStatus(statusName: String, statusColor: String): ProjectUpdatedEvent {
+    if (statusName.isBlank()) {
+        throw IllegalArgumentException("Blank status name: $statusName")
     }
+    if (statusColor.isBlank()) {
+        throw IllegalArgumentException("Blank status color: $statusColor")
+    }
+    if (statusNames.contains(statusName)) {
+        throw IllegalArgumentException("Status already exists: $statusName")
+    }
+    val status = StatusEntity(
+        name = statusName,
+        color = statusColor
+    )
+    return ProjectUpdatedEvent(
+        projectId = this.getId(),
+        update = ProjectUpdateEntity(
+            eventType =  ProjectUpdateEventType.ADD_STATUS,
+            userId = null,
+            status = status,
+        )
+    )
+}
 
-    return TagAssignedToTaskEvent(projectId = this.getId(), tagId = tagId, taskId = taskId)
+fun ProjectAggregateState.removeStatus(statusId: UUID): ProjectUpdatedEvent {
+    if (!statuses.contains(statusId)) {
+        throw IllegalArgumentException("Status's not assigned to project: $statusId")
+    }
+    val status = StatusEntity(
+        id = statusId,
+        name = Strings.EMPTY,
+        color = Strings.EMPTY
+    )
+    return ProjectUpdatedEvent(
+        projectId = this.getId(),
+        update = ProjectUpdateEntity(
+            eventType = ProjectUpdateEventType.REMOVE_STATUS,
+            userId = null,
+            status = status,
+        )
+    )
+}
+
+fun ProjectAggregateState.addTask(taskId: UUID): TaskAddedEvent {
+    if (tasks.contains(taskId)) {
+        throw IllegalArgumentException("Task already added: $taskId")
+    }
+    return TaskAddedEvent(
+        projectId = this.getId(),
+        taskId = UUID.randomUUID(),
+    )
+}
+
+fun ProjectAggregateState.removeTask(taskId: UUID): TaskRemovedEvent {
+    if (!tasks.contains(taskId)) {
+        throw IllegalArgumentException("Task's not assigned to project: $taskId")
+    }
+    return TaskRemovedEvent(
+        projectId = this.getId(),
+        taskId = taskId,
+    )
 }

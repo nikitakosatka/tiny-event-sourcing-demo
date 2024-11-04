@@ -2,54 +2,62 @@ package ru.quipy.api
 
 import ru.quipy.core.annotations.DomainEvent
 import ru.quipy.domain.Event
+import ru.quipy.logic.ProjectUpdateEntity
 import java.util.*
 
 const val PROJECT_CREATED_EVENT = "PROJECT_CREATED_EVENT"
-const val TAG_CREATED_EVENT = "TAG_CREATED_EVENT"
-const val TAG_ASSIGNED_TO_TASK_EVENT = "TAG_ASSIGNED_TO_TASK_EVENT"
-const val TASK_CREATED_EVENT = "TASK_CREATED_EVENT"
+const val PROJECT_UPDATED_EVENT = "PROJECT_UPDATED_EVENT"
+const val PROJECT_DELETED_EVENT = "PROJECT_DELETED_EVENT"
+const val TASK_ADDED_EVENT = "TASK_ADDED_EVENT"
+const val TASK_REMOVED_EVENT = "TASK_REMOVED_EVENT"
 
 // API
 @DomainEvent(name = PROJECT_CREATED_EVENT)
 class ProjectCreatedEvent(
     val projectId: UUID,
     val title: String,
-    val creatorId: String,
+    val creatorId: UUID,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
     name = PROJECT_CREATED_EVENT,
     createdAt = createdAt,
 )
 
-@DomainEvent(name = TAG_CREATED_EVENT)
-class TagCreatedEvent(
+@DomainEvent(name = PROJECT_UPDATED_EVENT)
+class ProjectUpdatedEvent(
     val projectId: UUID,
-    val tagId: UUID,
-    val tagName: String,
+    val update: ProjectUpdateEntity,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
-    name = TAG_CREATED_EVENT,
+    name = PROJECT_CREATED_EVENT,
     createdAt = createdAt,
 )
 
-@DomainEvent(name = TASK_CREATED_EVENT)
-class TaskCreatedEvent(
+@DomainEvent(name = PROJECT_DELETED_EVENT)
+class ProjectDeletedEvent(
     val projectId: UUID,
-    val taskId: UUID,
-    val taskName: String,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
-    name = TASK_CREATED_EVENT,
-    createdAt = createdAt
+    name = PROJECT_DELETED_EVENT,
+    createdAt = createdAt,
 )
 
-@DomainEvent(name = TAG_ASSIGNED_TO_TASK_EVENT)
-class TagAssignedToTaskEvent(
+@DomainEvent(name = TASK_ADDED_EVENT)
+class TaskAddedEvent(
     val projectId: UUID,
     val taskId: UUID,
-    val tagId: UUID,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
-    name = TAG_ASSIGNED_TO_TASK_EVENT,
-    createdAt = createdAt
+    name = TASK_ADDED_EVENT,
+    createdAt = createdAt,
+)
+
+@DomainEvent(name = TASK_REMOVED_EVENT)
+class TaskRemovedEvent(
+    val projectId: UUID,
+    val taskId: UUID,
+    createdAt: Long = System.currentTimeMillis(),
+) : Event<ProjectAggregate>(
+    name = TASK_REMOVED_EVENT,
+    createdAt = createdAt,
 )
