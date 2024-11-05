@@ -6,11 +6,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.api.ProjectAggregate
 import ru.quipy.api.TaskAggregate
+import ru.quipy.api.UserAggregate
 import ru.quipy.core.EventSourcingServiceFactory
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.TaskAggregateState
+import ru.quipy.logic.UserAggregateState
 import ru.quipy.projections.AnnotationBasedProjectEventsSubscriber
 import ru.quipy.projections.AnnotationBasedTaskEventsSubscriber
+import ru.quipy.projections.AnnotationBasedUserEventsSubscriber
 import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*
@@ -51,6 +54,9 @@ class EventSourcingLibConfiguration {
     private lateinit var taskEventSubscriber: AnnotationBasedTaskEventsSubscriber
 
     @Autowired
+    private lateinit var userEventSubscriber: AnnotationBasedUserEventsSubscriber
+
+    @Autowired
     private lateinit var eventSourcingServiceFactory: EventSourcingServiceFactory
 
     @Autowired
@@ -58,13 +64,18 @@ class EventSourcingLibConfiguration {
 
     @Bean
     fun projectEsService() = eventSourcingServiceFactory.create<UUID, ProjectAggregate, ProjectAggregateState>()
+
     @Bean
     fun taskEsService() = eventSourcingServiceFactory.create<UUID, TaskAggregate, TaskAggregateState>()
+
+    @Bean
+    fun userEsService() = eventSourcingServiceFactory.create<UUID, UserAggregate, UserAggregateState>()
 
     @PostConstruct
     fun init() {
         subscriptionsManager.subscribe<ProjectAggregate>(projectEventSubscriber)
         subscriptionsManager.subscribe<TaskAggregate>(taskEventSubscriber)
+        subscriptionsManager.subscribe<TaskAggregate>(userEventSubscriber)
 
         eventStreamManager.maintenance {
             onRecordHandledSuccessfully { streamName, eventName ->

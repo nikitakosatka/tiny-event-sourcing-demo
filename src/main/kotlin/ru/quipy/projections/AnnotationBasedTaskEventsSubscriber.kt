@@ -12,7 +12,6 @@ import ru.quipy.streams.annotation.SubscribeEvent
     aggregateClass = TaskAggregate::class, subscriberName = "task-subscriber",
 )
 class AnnotationBasedTaskEventsSubscriber {
-
     val logger: Logger = LoggerFactory.getLogger(AnnotationBasedTaskEventsSubscriber::class.java)
 
     @SubscribeEvent
@@ -22,6 +21,6 @@ class AnnotationBasedTaskEventsSubscriber {
 
     @SubscribeEvent
     fun taskUpdatedSubscriber(event: TaskUpdatedEvent) {
-        logger.info("Task updated: {}", event.update)
+        logger.info("Task {} updated: {}", event.taskId, event.update)
     }
 }

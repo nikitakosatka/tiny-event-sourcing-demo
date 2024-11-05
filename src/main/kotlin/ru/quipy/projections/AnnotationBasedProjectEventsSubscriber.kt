@@ -12,7 +12,6 @@ import ru.quipy.streams.annotation.SubscribeEvent
     aggregateClass = ProjectAggregate::class, subscriberName = "project-subscriber",
 )
 class AnnotationBasedProjectEventsSubscriber {
-
     val logger: Logger = LoggerFactory.getLogger(AnnotationBasedProjectEventsSubscriber::class.java)
 
     @SubscribeEvent
@@ -22,7 +21,7 @@ class AnnotationBasedProjectEventsSubscriber {
 
     @SubscribeEvent
     fun projectUpdatedSubscriberSubscriber(event: ProjectUpdatedEvent) {
-        logger.info("Project updated: {}", event.update)
+        logger.info("Project {} updated: {}", event.projectId, event.update)
     }
 
     @SubscribeEvent
