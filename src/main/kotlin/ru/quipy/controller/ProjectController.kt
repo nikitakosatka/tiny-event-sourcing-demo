@@ -18,7 +18,6 @@ import java.util.*
 class ProjectController(
     val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
 ) {
-
     @PostMapping("/{projectName}")
     fun createProject(@PathVariable projectName: String, @RequestParam creatorId: UUID): ProjectCreatedEvent {
         return projectEsService.create { it.create(UUID.randomUUID(), projectName, creatorId) }
@@ -35,6 +34,7 @@ class ProjectController(
             it.addUser(userId)
         }
     }
+
     @PutMapping("/remove-user/{projectId}}")
     fun removeUserFromProject(@PathVariable projectId: UUID, @RequestParam userId: UUID): ProjectUpdatedEvent {
         return projectEsService.update(projectId) {
